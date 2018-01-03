@@ -30,6 +30,7 @@ data = data['dataset']
 train_writer = tf.python_io.TFRecordWriter('LARA_train.record')
 
 def get_example(index, num_obj):
+	print(index,num_obj)
 	img_id = index
 	img_name = 'frame_' + '0' * (6 - len(str(img_id))) + str(img_id) + '.jpg'
 	img_path='LARA/'
@@ -108,7 +109,10 @@ for i in range(0,len(data['frame'])):
 	if(frame['objectlist'] == '\n'):
 		ntl += 1
 		continue
-	tf_example = get_example(i,len(frame['objectlist']))
+	if(type(frame['objectlist']['object']) == list):
+		tf_example = get_example(i,len(frame['objectlist']['object']))
+	else:
+		tf_example = get_example(i,1)
 	print("Count : ",i)
 	train_writer.write(tf_example.SerializeToString())
 	tl += 1
