@@ -99,4 +99,12 @@ def get_example(index, num_obj):
       'image/object/view': dataset_util.bytes_list_feature(bytes(poses))}))
 	return example
 
-
+tl=0
+ntl=0
+for i in range(0,814):#len(data['frame'])):
+	frame = data['frame'][i]
+	if(frame['objectlist'] == '\n'):
+		ntl += 1
+		continue
+	tf_example = get_example(i,len(frame['objectlist']))
+	print 
