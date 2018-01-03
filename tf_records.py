@@ -101,10 +101,16 @@ def get_example(index, num_obj):
 
 tl=0
 ntl=0
-for i in range(0,814):#len(data['frame'])):
+for i in range(0,len(data['frame'])):
+	if(i % 10 != 0):
+		continue
 	frame = data['frame'][i]
 	if(frame['objectlist'] == '\n'):
 		ntl += 1
 		continue
 	tf_example = get_example(i,len(frame['objectlist']))
-	print 
+	print("Count : ",i)
+	train_writer.write(tf_example.SerializeToString())
+	tl += 1
+
+print("TL : ",tl," NTL ",ntl)
