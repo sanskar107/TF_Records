@@ -27,10 +27,10 @@ import json
 data = json.load(open('LARA_GT.json'))
 data = data['dataset']
 
-# train_writer = tf.python_io.TFRecordWriter('LARA_train.record')
+train_writer = tf.python_io.TFRecordWriter('LARA_train.record')
 
 def get_example(index, num_obj):
-	# print(index,num_obj)
+	print(index,num_obj)
 	img_id = index
 	img_name = 'frame_' + '0' * (6 - len(str(img_id))) + str(img_id) + '.jpg'
 	img_path='LARA/'
@@ -135,8 +135,8 @@ for i in range(0,len(data['frame'])):
 		tf_example = get_example(i,len(frame['objectlist']['object']))
 	else:
 		tf_example = get_example(i,1)
-	# print("Count : ",i)
-	# train_writer.write(tf_example.SerializeToString())
+	print("Count : ",i)
+	train_writer.write(tf_example.SerializeToString())
 	tl += 1
 
 print("TL : ",tl," NTL ",ntl)
