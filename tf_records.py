@@ -27,10 +27,10 @@ import json
 data = json.load(open('LARA_GT.json'))
 data = data['dataset']
 
-train_writer = tf.python_io.TFRecordWriter('LARA_train.record')
+# train_writer = tf.python_io.TFRecordWriter('LARA_train.record')
 
 def get_example(index, num_obj):
-	print(index,num_obj)
+	# print(index,num_obj)
 	img_id = index
 	img_name = 'frame_' + '0' * (6 - len(str(img_id))) + str(img_id) + '.jpg'
 	img_path='LARA/'
@@ -57,17 +57,24 @@ def get_example(index, num_obj):
 
 	if(num_obj > 1):
 		for i in range(0, num_obj):
-			difficult_obj.append(0)
 			box = data['frame'][index]['objectlist']['object'][i]['box']
-			xmin.append((float(box['_xc']) - (float(box['_w']) / 2)) / width)
-			xmax.append((float(box['_xc']) + (float(box['_w']) / 2)) / width)
-			ymin.append((float(box['_yc']) - (float(box['_h']) / 2)) / height)
-			ymax.append((float(box['_yc']) + (float(box['_h']) / 2)) / height)
+			XMIN = (float(box['_xc']) - (float(box['_w']) / 2)) / width
+			XMAX = (float(box['_xc']) + (float(box['_w']) / 2)) / width
+			YMIN = (float(box['_yc']) - (float(box['_h']) / 2)) / height
+			YMAX = (float(box['_yc']) + (float(box['_h']) / 2)) / height
+			if(XMIN >= 1 or XMAX >= 1 or YMIN >= 1 or YMAX >= 1):
+				continue
+			difficult_obj.append(0)
+			xmin.append(XMIN)
+			xmax.append(XMAX)
+			ymin.append(YMIN)
+			ymax.append(YMAX)
 			classes_text.append("Traffic_light")
 			classes.append(1)
 			truncated.append(0)
 			poses.append('Unspecified')
-	
+
+
 	else:
 		difficult_obj.append(0)
 		box = data['frame'][index]['objectlist']['object']['box']
@@ -79,6 +86,21 @@ def get_example(index, num_obj):
 		classes.append(1)
 		truncated.append(0)
 		poses.append('Unspecified')
+
+	for i in xmin:
+		if(i >= 1):
+			print("GOT xmin",img_id)
+	for i in xmax:
+		if(i >= 1):
+			print("GOT xmax",img_id)
+			print(xmax)
+			print(num_obj)
+	for i in ymin:
+		if(i >= 1):
+			print("GOT ymin",img_id)
+	for i in ymax:
+		if(i >= 1):
+			print("GOT ymax",img_id)
 
 
 	example = tf.train.Example(features=tf.train.Features(feature={
@@ -113,8 +135,8 @@ for i in range(0,len(data['frame'])):
 		tf_example = get_example(i,len(frame['objectlist']['object']))
 	else:
 		tf_example = get_example(i,1)
-	print("Count : ",i)
-	train_writer.write(tf_example.SerializeToString())
+	# print("Count : ",i)
+	# train_writer.write(tf_example.SerializeToString())
 	tl += 1
 
 print("TL : ",tl," NTL ",ntl)
