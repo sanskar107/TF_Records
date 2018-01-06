@@ -62,8 +62,9 @@ def get_example(index, num_obj):
 			XMAX = (float(box['_xc']) + (float(box['_w']) / 2)) / width
 			YMIN = (float(box['_yc']) - (float(box['_h']) / 2)) / height
 			YMAX = (float(box['_yc']) + (float(box['_h']) / 2)) / height
-			if(XMIN >= 1 or XMAX >= 1 or YMIN >= 1 or YMAX >= 1):
-				continue
+			if(XMIN >= 1.0 or XMAX >= 1.0 or YMIN >= 1.0 or YMAX >= 1.0 or XMIN < 0 or XMAX < 0 or YMIN < 0 or YMAX < 0):
+				print("got")
+				return tf.train.Example(),0
 			difficult_obj.append(0)
 			xmin.append(XMIN)
 			xmax.append(XMAX)
@@ -76,33 +77,40 @@ def get_example(index, num_obj):
 
 
 	else:
-		difficult_obj.append(0)
 		box = data['frame'][index]['objectlist']['object']['box']
-		xmin.append((float(box['_xc']) - (float(box['_w']) / 2)) / width)
-		xmax.append((float(box['_xc']) + (float(box['_w']) / 2)) / width)
-		ymin.append((float(box['_yc']) - (float(box['_h']) / 2)) / height)
-		ymax.append((float(box['_yc']) + (float(box['_h']) / 2)) / height)
+		XMIN = (float(box['_xc']) - (float(box['_w']) / 2)) / width
+		XMAX = (float(box['_xc']) + (float(box['_w']) / 2)) / width
+		YMIN = (float(box['_yc']) - (float(box['_h']) / 2)) / height
+		YMAX = (float(box['_yc']) + (float(box['_h']) / 2)) / height
+		if(XMIN >= 1.0 or XMAX >= 1.0 or YMIN >= 1.0 or YMAX >= 1.0 or XMIN < 0 or XMAX < 0 or YMIN < 0 or YMAX < 0):
+			print("GOT")
+			return tf.train.Example(),0
+		difficult_obj.append(0)
+		xmin.append(XMIN)
+		xmax.append(XMAX)
+		ymin.append(YMIN)
+		ymax.append(YMAX)
 		classes_text.append("Traffic_light")
 		classes.append(1)
 		truncated.append(0)
 		poses.append('Unspecified')
 
 	for i in xmin:
-		if(i >= 1):
+		if(i >= 1 or i < 0):
 			print("GOT xmin",img_id)
 	for i in xmax:
-		if(i >= 1):
+		if(i >= 1 or i < 0):
 			print("GOT xmax",img_id)
 			print(xmax)
 			print(num_obj)
 	for i in ymin:
-		if(i >= 1):
+		if(i >= 1 or i < 0):
 			print("GOT ymin",img_id)
 	for i in ymax:
-		if(i >= 1):
+		if(i >= 1 or i < 0):
 			print("GOT ymax",img_id)
 
-
+	# print(xmin)
 	example = tf.train.Example(features=tf.train.Features(feature={
 	  'image/height': dataset_util.int64_feature(height),
       'image/width': dataset_util.int64_feature(width),
@@ -120,7 +128,7 @@ def get_example(index, num_obj):
       'image/object/difficult': dataset_util.int64_list_feature(difficult_obj),
       'image/object/truncated': dataset_util.int64_list_feature(truncated),
       'image/object/view': dataset_util.bytes_list_feature(bytes(poses))}))
-	return example
+	return example,1
 
 tl=0
 ntl=0
@@ -132,11 +140,12 @@ for i in range(0,len(data['frame'])):
 		ntl += 1
 		continue
 	if(type(frame['objectlist']['object']) == list):
-		tf_example = get_example(i,len(frame['objectlist']['object']))
+		tf_example,flag = get_example(i,len(frame['objectlist']['object']))
 	else:
-		tf_example = get_example(i,1)
-	print("Count : ",i)
-	train_writer.write(tf_example.SerializeToString())
-	tl += 1
+		tf_example,flag = get_example(i,1)
+	if(flag == 1):
+		print("Count : ",i)
+		train_writer.write(tf_example.SerializeToString())
+		tl += 1
 
 print("TL : ",tl," NTL ",ntl)
